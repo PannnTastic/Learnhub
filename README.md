@@ -29,6 +29,14 @@ A comprehensive e-learning platform built with Node.js, Express.js, EJS, Bootstr
 - **Search & Filter**: Search courses by title, category, level, and more
 - **File Upload**: Support for course thumbnails and media files
 
+## Use Case Diagram
+
+The following diagram illustrates the main use cases and interactions within the LearnHub platform:
+
+![LearnHub Use Case Diagram](learnhub_plantuml_use_case/LearnHub_Use_Case_Simple.png)
+
+This diagram shows the relationships between different user roles (Admin, Instructor, Student) and their respective functionalities within the system.
+
 ## Technology Stack
 
 - **Backend**: Node.js, Express.js
