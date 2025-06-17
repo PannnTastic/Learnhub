@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Dashboard - LearnHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .course-card {
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .course-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        .quick-action-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .quick-action-btn:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    
+    <!-- Dashboard Header -->
+    <div class="dashboard-header text-white py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-6 fw-bold mb-3">
+                        <i class="bi bi-mortarboard"></i> Welcome back, <%= user.first_name %>!
+                    </h1>
+                    <p class="lead mb-4">Manage your courses and track your teaching progress</p>
+                    
+                    <!-- Quick Actions -->
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="/instructor/courses/add" class="btn quick-action-btn">
+                            <i class="bi bi-plus-circle"></i> Create New Course
+                        </a>
+                        <a href="/instructor/courses" class="btn quick-action-btn">
+                            <i class="bi bi-journal-bookmark"></i> My Courses
+                        </a>
+                        <a href="/instructor/profile" class="btn quick-action-btn">
+                            <i class="bi bi-person-gear"></i> Profile Settings
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="bg-white bg-opacity-20 rounded-circle mx-auto d-flex align-items-center justify-content-center" 
+                         style="width: 120px; height: 120px;">
+                        <i class="bi bi-person" style="font-size: 4rem;"></i>
+                    </div>
+                    <p class="mt-3 mb-0">
+                        <strong>Instructor</strong><br>
+                        Member since <%= new Date(user.created_at).getFullYear() %>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mt-5">
+        <%- include('../partials/messages') %>
+        
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body text-center">
+                        <div class="stats-icon bg-primary text-white mx-auto mb-3">
+                            <i class="bi bi-journal-bookmark"></i>
+                        </div>
+                        <h3 class="fw-bold text-primary"><%= stats.total_courses %></h3>
+                        <p class="text-muted mb-0">Total Courses</p>
+                        <small class="text-success">
+                            <i class="bi bi-arrow-up"></i> Active teaching
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body text-center">
+                        <div class="stats-icon bg-success text-white mx-auto mb-3">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3 class="fw-bold text-success"><%= stats.total_enrollments %></h3>
+                        <p class="text-muted mb-0">Total Students</p>
+                        <small class="text-info">
+                            <i class="bi bi-info-circle"></i> All time
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body text-center">
+                        <div class="stats-icon bg-warning text-white mx-auto mb-3">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <h3 class="fw-bold text-warning"><%= stats.avg_rating || 0 %></h3>
+                        <p class="text-muted mb-0">Average Rating</p>
+                        <small class="text-muted">
+                            <i class="bi bi-star"></i> From student feedback
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body text-center">
+                        <div class="stats-icon bg-info text-white mx-auto mb-3">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <h3 class="fw-bold text-info">$2,450</h3>
+                        <p class="text-muted mb-0">Earnings</p>
+                        <small class="text-success">
+                            <i class="bi bi-arrow-up"></i> +12% this month
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Recent Courses -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-clock-history"></i> Recent Courses
+                        </h5>
+                        <a href="/instructor/courses" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-eye"></i> View All
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <% if (recentCourses && recentCourses.length > 0) { %>
+                            <% recentCourses.forEach((course, index) => { %>
+                                <div class="d-flex align-items-center p-3 border-bottom <%= index === recentCourses.length - 1 ? 'border-0' : '' %>">
+                                    <div class="me-3">
+                                        <% if (course.thumbnail) { %>
+                                            <img src="/uploads/<%= course.thumbnail %>" class="rounded" width="60" height="60" style="object-fit: cover;">
+                                        <% } else { %>
+                                            <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                                <i class="bi bi-journal-bookmark"></i>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1"><%= course.title %></h6>
+                                        <p class="text-muted small mb-1"><%= course.description.substring(0, 80) %>...</p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-people"></i> <%= course.enrollments %> students
+                                            <span class="ms-2">
+                                                <i class="bi bi-calendar"></i> <%= new Date(course.created_at).toLocaleDateString() %>
+                                            </span>
+                                            <span class="ms-2">
+                                                <span class="badge bg-<%= course.status === 'published' ? 'success' : course.status === 'draft' ? 'warning' : 'secondary' %>">
+                                                    <%= course.status.charAt(0).toUpperCase() + course.status.slice(1) %>
+                                                </span>
+                                            </span>
+                                        </small>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="/instructor/courses/<%= course.id %>/content">
+                                                <i class="bi bi-list-ul"></i> Manage Content
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="/instructor/courses/<%= course.id %>/analytics">
+                                                <i class="bi bi-graph-up"></i> View Analytics
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="/instructor/courses/edit/<%= course.id %>">
+                                                <i class="bi bi-pencil"></i> Edit Course
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="text-center py-4">
+                                <i class="bi bi-journal-x text-muted" style="font-size: 3rem;"></i>
+                                <h5 class="mt-3">No courses yet</h5>
+                                <p class="text-muted">Create your first course to start teaching!</p>
+                                <a href="/instructor/courses/add" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle"></i> Create Your First Course
+                                </a>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Stats & Actions -->
+            <div class="col-lg-4">
+                <!-- Performance Overview -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up-arrow"></i> Performance Overview
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Course Completion Rate</span>
+                            <strong class="text-success">78%</strong>
+                        </div>
+                        <div class="progress mb-3" style="height: 8px;">
+                            <div class="progress-bar bg-success" style="width: 78%"></div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Student Satisfaction</span>
+                            <strong class="text-warning"><%= stats.avg_rating %>/5</strong>
+                        </div>                        <div class="progress mb-3" style="height: 8px;">
+                            <% const ratingPercentage = stats.avg_rating ? (stats.avg_rating / 5) * 100 : 0; %>
+                            <div class="progress-bar bg-warning" style="width: <%= ratingPercentage %>%"></div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Course Quality Score</span>
+                            <strong class="text-info">85%</strong>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" style="width: 85%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Teaching Tips -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightbulb"></i> Teaching Tips
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-info-circle"></i> Engagement Tip</h6>
+                            <p class="mb-0 small">Add interactive quizzes to increase student engagement by up to 40%!</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>Next Steps:</h6>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    <span class="ms-2">Create engaging video content</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-clock text-warning"></i>
+                                    <span class="ms-2">Add downloadable resources</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-circle text-muted"></i>
+                                    <span class="ms-2">Enable course discussions</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <a href="#" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-book"></i> View Teaching Guide
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Animated counter for stats
+        function animateValue(element, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                element.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+        
+        // Animate stats on page load
+        window.addEventListener('load', function() {
+            const statsElements = document.querySelectorAll('.stats-card h3');
+            statsElements.forEach(element => {
+                const endValue = parseInt(element.textContent) || 0;
+                if (endValue > 0) {
+                    animateValue(element, 0, endValue, 1500);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

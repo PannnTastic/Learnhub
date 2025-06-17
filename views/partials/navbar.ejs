@@ -1,0 +1,76 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="bi bi-mortarboard-fill"></i> LearnHub
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/courses">Courses</a>
+                </li>
+            </ul>
+            
+            <ul class="navbar-nav">
+                <% if (user) { %>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <%= user.first_name %> <%= user.last_name %>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/dashboard">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a></li>
+                            <% if (user.role === 'admin') { %>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/admin/users">
+                                    <i class="bi bi-people"></i> Manage Users
+                                </a></li>
+                                <li><a class="dropdown-item" href="/admin/courses">
+                                    <i class="bi bi-journal-bookmark"></i> Manage Courses
+                                </a></li>
+                                <li><a class="dropdown-item" href="/admin/categories">
+                                    <i class="bi bi-tags"></i> Manage Categories
+                                </a></li>
+                            <% } else if (user.role === 'instructor') { %>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/instructor/courses">
+                                    <i class="bi bi-journal-bookmark"></i> My Courses
+                                </a></li>
+                                <li><a class="dropdown-item" href="/instructor/profile">
+                                    <i class="bi bi-person"></i> Profile
+                                </a></li>
+                            <% } else if (user.role === 'student') { %>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/student/courses">
+                                    <i class="bi bi-journal-bookmark"></i> My Courses
+                                </a></li>
+                                <li><a class="dropdown-item" href="/student/profile">
+                                    <i class="bi bi-person"></i> Profile
+                                </a></li>
+                            <% } %>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/auth/logout">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                <% } else { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/login">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/register">Register</a>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+</nav>

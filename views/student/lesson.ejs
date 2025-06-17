@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= lesson.lesson_title || lesson.title %> - <%= lesson.course_title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .lesson-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .lesson-content {
+            line-height: 1.6;
+        }
+        .lesson-content h1, .lesson-content h2, .lesson-content h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        .lesson-content p {
+            margin-bottom: 1rem;
+        }
+        .lesson-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .lesson-content pre {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        .lesson-content blockquote {
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .lesson-actions {
+            position: sticky;
+            bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    
+    <!-- Lesson Header -->
+    <div class="lesson-header text-white py-3">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <nav aria-label="breadcrumb" class="mb-2">
+                        <ol class="breadcrumb text-white-50">
+                            <li class="breadcrumb-item"><a href="/student/courses" class="text-white-50">My Courses</a></li>
+                            <li class="breadcrumb-item"><a href="/student/courses/<%= courseId %>" class="text-white-50"><%= lesson.course_title %></a></li>
+                            <li class="breadcrumb-item active text-white"><%= lesson.module_title %></li>
+                        </ol>
+                    </nav>
+                    <h1 class="h4 mb-1"><%= lesson.title %></h1>
+                    <p class="mb-0">
+                        <% if (lesson.type === 'video') { %>
+                            <i class="bi bi-play-circle"></i> Video Lesson
+                        <% } else if (lesson.type === 'text') { %>
+                            <i class="bi bi-file-text"></i> Reading Material
+                        <% } else if (lesson.type === 'quiz') { %>
+                            <i class="bi bi-question-circle"></i> Quiz
+                        <% } else { %>
+                            <i class="bi bi-journal"></i> Lesson
+                        <% } %>
+                        <% if (lesson.duration) { %>
+                            • <%= lesson.duration %> minutes
+                        <% } %>
+                        <% if (isCompleted) { %>
+                            • <span class="badge bg-success">Completed</span>
+                        <% } %>
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="/student/courses/<%= courseId %>" class="btn btn-light">
+                        <i class="bi bi-arrow-left"></i> Back to Course
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mt-4">
+        <%- include('../partials/messages') %>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <!-- Video Content -->
+                        <% if (lesson.type === 'video' && lesson.video_url) { %>
+                            <div class="video-container mb-4">
+                                <% if (lesson.video_url.includes('youtube.com') || lesson.video_url.includes('youtu.be')) { %>
+                                    <% 
+                                    let videoId = '';
+                                    if (lesson.video_url.includes('youtube.com/watch?v=')) {
+                                        videoId = lesson.video_url.split('v=')[1].split('&')[0];
+                                    } else if (lesson.video_url.includes('youtu.be/')) {
+                                        videoId = lesson.video_url.split('youtu.be/')[1].split('?')[0];
+                                    }
+                                    %>
+                                    <% if (videoId) { %>
+                                        <iframe src="https://www.youtube.com/embed/<%= videoId %>?rel=0&modestbranding=1" 
+                                                frameborder="0" allowfullscreen></iframe>
+                                    <% } else { %>
+                                        <iframe src="<%= lesson.video_url %>" frameborder="0" allowfullscreen></iframe>
+                                    <% } %>
+                                <% } else if (lesson.video_url.includes('vimeo.com')) { %>
+                                    <% 
+                                    const vimeoId = lesson.video_url.split('vimeo.com/')[1];
+                                    %>
+                                    <iframe src="https://player.vimeo.com/video/<%= vimeoId %>" frameborder="0" allowfullscreen></iframe>
+                                <% } else { %>
+                                    <iframe src="<%= lesson.video_url %>" frameborder="0" allowfullscreen></iframe>
+                                <% } %>
+                            </div>
+                        <% } %>
+                        
+                        <!-- Lesson Content -->
+                        <% if (lesson.content) { %>
+                            <div class="lesson-content">
+                                <%- lesson.content %>
+                            </div>
+                        <% } else { %>
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-file-earmark-text" style="font-size: 3rem;"></i>
+                                <h5 class="mt-3">Content Coming Soon</h5>
+                                <p>The instructor is preparing the content for this lesson.</p>
+                            </div>
+                        <% } %>
+                        
+                        <!-- Quiz Content -->
+                        <% if (lesson.type === 'quiz') { %>
+                            <div class="alert alert-info">
+                                <h5><i class="bi bi-question-circle"></i> Interactive Quiz</h5>
+                                <p class="mb-0">This lesson contains an interactive quiz. Complete the quiz to mark this lesson as finished.</p>
+                            </div>
+                            
+                            <!-- Placeholder for quiz content -->
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-patch-question" style="font-size: 3rem; color: #6c757d;"></i>
+                                    <h5 class="mt-3">Quiz Feature</h5>
+                                    <p class="text-muted">Quiz functionality will be implemented in a future update.</p>
+                                    <button class="btn btn-primary" onclick="markComplete()">
+                                        <i class="bi bi-check"></i> Mark as Complete
+                                    </button>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <!-- Additional Resources -->
+                        <% if (lesson.resources) { %>
+                            <div class="mt-4">
+                                <h5><i class="bi bi-download"></i> Additional Resources</h5>
+                                <div class="list-group">
+                                    <!-- Placeholder for downloadable resources -->
+                                    <div class="list-group-item">
+                                        <i class="bi bi-file-pdf text-danger"></i>
+                                        <span class="ms-2">Lesson Notes (PDF)</span>
+                                        <a href="#" class="btn btn-sm btn-outline-primary ms-auto">Download</a>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <!-- Navigation & Actions -->
+                <div class="lesson-actions mt-4 p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <!-- Previous Lesson Button -->
+                            <button class="btn btn-outline-secondary" id="prevBtn" disabled>
+                                <i class="bi bi-arrow-left"></i> Previous Lesson
+                            </button>
+                        </div>
+                        
+                        <div class="text-center">
+                            <% if (!isCompleted) { %>
+                                <button class="btn btn-success btn-lg" onclick="markComplete()">
+                                    <i class="bi bi-check-circle"></i> Mark as Complete
+                                </button>
+                            <% } else { %>
+                                <span class="badge bg-success fs-6">
+                                    <i class="bi bi-check-circle-fill"></i> Completed
+                                </span>
+                            <% } %>
+                        </div>
+                        
+                        <div>
+                            <!-- Next Lesson Button -->
+                            <button class="btn btn-primary" id="nextBtn" disabled>
+                                Next Lesson <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Indicator -->
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-center">
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> 
+                                <span id="timeSpent">0:00</span> spent on this lesson
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Completion Modal -->
+    <div class="modal fade" id="completionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-check-circle text-success"></i> Lesson Completed!
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <i class="bi bi-trophy text-warning" style="font-size: 3rem;"></i>
+                    <h4 class="mt-3">Great Job!</h4>
+                    <p>You've successfully completed "<%= lesson.title %>"</p>
+                    <p class="text-muted">Keep up the good work and continue learning!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stay Here</button>
+                    <a href="/student/courses/<%= courseId %>" class="btn btn-primary">
+                        Continue to Next Lesson
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let startTime = new Date();
+        let timeSpentInterval;
+        
+        // Track time spent on lesson
+        function updateTimeSpent() {
+            const now = new Date();
+            const diffMs = now - startTime;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffSecs = Math.floor((diffMs % 60000) / 1000);
+            document.getElementById('timeSpent').textContent = `${diffMins}:${diffSecs.toString().padStart(2, '0')}`;
+        }
+        
+        // Start time tracking
+        timeSpentInterval = setInterval(updateTimeSpent, 1000);
+        
+        // Mark lesson as complete
+        function markComplete() {
+            fetch(`/student/courses/<%= courseId %>/lessons/<%= lesson.id %>/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Show completion modal
+                    const modal = new bootstrap.Modal(document.getElementById('completionModal'));
+                    modal.show();
+                    
+                    // Update UI
+                    document.querySelector('.btn-success').innerHTML = '<i class="bi bi-check-circle-fill"></i> Completed';
+                    document.querySelector('.btn-success').classList.remove('btn-success');
+                    document.querySelector('.btn[onclick="markComplete()"]').classList.add('badge', 'bg-success', 'fs-6');
+                    document.querySelector('.btn[onclick="markComplete()"]').onclick = null;
+                } else {
+                    alert('Error marking lesson as complete. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error marking lesson as complete. Please try again.');
+            });
+        }
+        
+        // Auto-scroll to video on page load
+        window.addEventListener('load', function() {
+            const videoContainer = document.querySelector('.video-container');
+            if (videoContainer) {
+                setTimeout(() => {
+                    videoContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 500);
+            }
+        });
+        
+        // Cleanup time tracking on page unload
+        window.addEventListener('beforeunload', function() {
+            if (timeSpentInterval) {
+                clearInterval(timeSpentInterval);
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Space to play/pause video (if video is present)
+            if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                // Video play/pause logic would go here
+            }
+            
+            // 'C' to mark complete
+            if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.altKey) {
+                const completeBtn = document.querySelector('.btn-success[onclick="markComplete()"]');
+                if (completeBtn) {
+                    markComplete();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

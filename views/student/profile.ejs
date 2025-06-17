@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Student Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.2);
+            border: 4px solid rgba(255,255,255,0.3);
+        }
+        .stats-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .form-card {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    
+    <!-- Profile Header -->
+    <div class="profile-header text-white py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center">
+                        <div class="profile-avatar rounded-circle d-flex align-items-center justify-content-center me-4">
+                            <i class="bi bi-person" style="font-size: 3rem;"></i>
+                        </div>
+                        <div>
+                            <h1 class="h3 mb-1"><%= user.first_name %> <%= user.last_name %></h1>
+                            <p class="mb-1">@<%= user.username %></p>
+                            <p class="mb-0">
+                                <i class="bi bi-envelope"></i> <%= user.email %>
+                                <span class="ms-3">
+                                    <i class="bi bi-calendar"></i> Member since <%= new Date(user.created_at).getFullYear() %>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="stats-card text-center p-3 rounded">
+                                <h4 class="mb-1">12</h4>
+                                <small>Courses</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stats-card text-center p-3 rounded">
+                                <h4 class="mb-1">8</h4>
+                                <small>Completed</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stats-card text-center p-3 rounded">
+                                <h4 class="mb-1">67%</h4>
+                                <small>Avg Progress</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stats-card text-center p-3 rounded">
+                                <h4 class="mb-1">156h</h4>
+                                <small>Learning Time</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mt-5">
+        <%- include('../partials/messages') %>
+        
+        <div class="row">
+            <!-- Profile Form -->
+            <div class="col-lg-8">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person-gear"></i> Edit Profile
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="/student/profile">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="first_name" class="form-label">
+                                        <i class="bi bi-person"></i> First Name <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" 
+                                           value="<%= user.first_name %>" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="last_name" class="form-label">
+                                        <i class="bi bi-person"></i> Last Name <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" 
+                                           value="<%= user.last_name %>" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="username" class="form-label">
+                                        <i class="bi bi-at"></i> Username <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="username" name="username" 
+                                           value="<%= user.username %>" required>
+                                    <div class="form-text">This will be your unique identifier</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">
+                                        <i class="bi bi-envelope"></i> Email Address <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="email" class="form-control" id="email" name="email" 
+                                           value="<%= user.email %>" required>
+                                </div>
+                                <div class="col-12">
+                                    <label for="bio" class="form-label">
+                                        <i class="bi bi-card-text"></i> Bio
+                                    </label>
+                                    <textarea class="form-control" id="bio" name="bio" rows="4" 
+                                              placeholder="Tell us about yourself..."><%= user.bio || '' %></textarea>
+                                    <div class="form-text">Share a bit about your learning goals and interests</div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> 
+                                    Fields marked with * are required
+                                </small>
+                                <div>
+                                    <button type="button" class="btn btn-outline-secondary me-2" onclick="resetForm()">
+                                        <i class="bi bi-arrow-clockwise"></i> Reset
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle"></i> Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Account Security -->
+                <div class="card form-card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-shield-lock"></i> Account Security
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <h6>Password</h6>
+                                <p class="text-muted small">Last changed 30 days ago</p>
+                                <button class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-key"></i> Change Password
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Two-Factor Authentication</h6>
+                                <p class="text-muted small">Not enabled</p>
+                                <button class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-shield-plus"></i> Enable 2FA
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Learning Preferences -->
+                <div class="card form-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-gear"></i> Learning Preferences
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Preferred Learning Style</label>
+                            <select class="form-select">
+                                <option>Visual Learning</option>
+                                <option>Auditory Learning</option>
+                                <option>Hands-on Learning</option>
+                                <option>Reading/Writing</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Daily Learning Goal</label>
+                            <select class="form-select">
+                                <option>30 minutes</option>
+                                <option>1 hour</option>
+                                <option>2 hours</option>
+                                <option>3+ hours</option>
+                            </select>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="notifications">
+                            <label class="form-check-label" for="notifications">
+                                Email notifications for new courses
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="reminders">
+                            <label class="form-check-label" for="reminders">
+                                Daily learning reminders
+                            </label>
+                        </div>
+                        <button class="btn btn-primary btn-sm mt-3 w-100">
+                            <i class="bi bi-check"></i> Save Preferences
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Learning Streak -->
+                <div class="card form-card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-fire"></i> Learning Streak
+                        </h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-fire text-warning" style="font-size: 3rem;"></i>
+                        </div>
+                        <h3 class="text-warning">7 Days</h3>
+                        <p class="text-muted">Current streak</p>
+                        <small class="text-muted">
+                            Keep learning daily to maintain your streak!
+                        </small>
+                        
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <h6 class="text-primary">21</h6>
+                                <small class="text-muted">Longest Streak</small>
+                            </div>
+                            <div class="col-6">
+                                <h6 class="text-success">156</h6>
+                                <small class="text-muted">Total Days</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Achievements -->
+                <div class="card form-card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-trophy"></i> Recent Achievements
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <i class="bi bi-award text-warning" style="font-size: 2rem;"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">First Course Completed</h6>
+                                <small class="text-muted">Completed your first course</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <i class="bi bi-calendar-week text-info" style="font-size: 2rem;"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Week Warrior</h6>
+                                <small class="text-muted">7-day learning streak</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-star text-success" style="font-size: 2rem;"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Quick Learner</h6>
+                                <small class="text-muted">Completed 5 lessons in one day</small>
+                            </div>
+                        </div>
+                        
+                        <a href="#" class="btn btn-outline-primary btn-sm w-100 mt-3">
+                            <i class="bi bi-eye"></i> View All Achievements
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function resetForm() {
+            if (confirm('Are you sure you want to reset the form? All unsaved changes will be lost.')) {
+                location.reload();
+            }
+        }
+        
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const firstName = document.getElementById('first_name').value.trim();
+            const lastName = document.getElementById('last_name').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            if (!firstName || !lastName || !username || !email) {
+                e.preventDefault();
+                alert('Please fill in all required fields.');
+                return false;
+            }
+            
+            if (username.length < 3) {
+                e.preventDefault();
+                alert('Username must be at least 3 characters long.');
+                return false;
+            }
+            
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                alert('Please enter a valid email address.');
+                return false;
+            }
+        });
+        
+        // Character counter for bio
+        const bioTextarea = document.getElementById('bio');
+        const maxLength = 500;
+        
+        // Create character counter
+        const counterDiv = document.createElement('div');
+        counterDiv.className = 'form-text text-end';
+        counterDiv.innerHTML = `<small><span id="charCount">0</span>/${maxLength} characters</small>`;
+        bioTextarea.parentNode.appendChild(counterDiv);
+        
+        bioTextarea.addEventListener('input', function() {
+            const charCount = this.value.length;
+            document.getElementById('charCount').textContent = charCount;
+            
+            if (charCount > maxLength) {
+                this.value = this.value.substring(0, maxLength);
+                document.getElementById('charCount').textContent = maxLength;
+            }
+            
+            // Change color based on character count
+            const counter = document.getElementById('charCount');
+            if (charCount > maxLength * 0.9) {
+                counter.className = 'text-warning';
+            } else if (charCount === maxLength) {
+                counter.className = 'text-danger';
+            } else {
+                counter.className = '';
+            }
+        });
+        
+        // Initial character count
+        bioTextarea.dispatchEvent(new Event('input'));
+    </script>
+</body>
+</html>

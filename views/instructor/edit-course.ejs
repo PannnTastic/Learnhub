@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Course - <%= course.title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .form-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .form-card {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 15px;
+        }
+        .nav-pills .nav-link {
+            border-radius: 25px;
+            margin-right: 10px;
+        }
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .drag-drop-area {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .drag-drop-area:hover {
+            background: #f8f9fa;
+        }
+        .thumbnail-preview {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .status-indicator {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .preview-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    
+    <!-- Header -->
+    <div class="form-header text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <nav aria-label="breadcrumb" class="mb-2">
+                        <ol class="breadcrumb text-white-50">
+                            <li class="breadcrumb-item"><a href="/instructor/courses" class="text-white-50">My Courses</a></li>
+                            <li class="breadcrumb-item active text-white">Edit Course</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-pencil-square"></i> Edit Course
+                    </h1>
+                    <p class="mb-0">Update your course information and settings</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="btn-group">
+                        <a href="/instructor/courses/<%= course.id %>/content" class="btn btn-light">
+                            <i class="bi bi-list-ul"></i> Manage Content
+                        </a>
+                        <a href="/instructor/courses" class="btn btn-outline-light">
+                            <i class="bi bi-arrow-left"></i> Back to Courses
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mt-5">
+        <%- include('../partials/messages') %>
+        
+        <!-- Course Status Overview -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-1"><%= course.title %></h5>
+                                <p class="text-muted mb-0">Last updated: <%= new Date(course.updated_at).toLocaleDateString() %></p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <span class="status-indicator bg-<%= course.status === 'published' ? 'success' : course.status === 'draft' ? 'warning' : 'secondary' %> text-white">
+                                    <i class="bi bi-<%= course.status === 'published' ? 'check-circle' : course.status === 'draft' ? 'clock' : 'archive' %>"></i>
+                                    <%= course.status.charAt(0).toUpperCase() + course.status.slice(1) %>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills mb-4" id="editTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="basic-tab" data-bs-toggle="pill" data-bs-target="#basic" type="button" role="tab">
+                    <i class="bi bi-info-circle"></i> Basic Information
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="details-tab" data-bs-toggle="pill" data-bs-target="#details" type="button" role="tab">
+                    <i class="bi bi-gear"></i> Course Details
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="media-tab" data-bs-toggle="pill" data-bs-target="#media" type="button" role="tab">
+                    <i class="bi bi-image"></i> Media & Thumbnail
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="settings-tab" data-bs-toggle="pill" data-bs-target="#settings" type="button" role="tab">
+                    <i class="bi bi-sliders"></i> Publishing Settings
+                </button>
+            </li>
+        </ul>
+        
+        <!-- Form Container -->
+        <form action="/instructor/courses/edit/<%= course.id %>" method="POST" enctype="multipart/form-data" id="editCourseForm">
+            
+            <!-- Tab Content -->
+            <div class="tab-content" id="editTabsContent">
+                
+                <!-- Basic Information Tab -->
+                <div class="tab-pane fade show active" id="basic" role="tabpanel">
+                    <div class="card form-card">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">
+                                <i class="bi bi-info-circle"></i> Course Information
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="title" class="form-label fw-bold">
+                                        Course Title <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control form-control-lg" id="title" name="title" 
+                                           value="<%= course.title %>" placeholder="Enter course title..." required>
+                                    <div class="form-text">
+                                        <i class="bi bi-lightbulb"></i> 
+                                        Make it clear, specific, and appealing to your target audience
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="category_id" class="form-label fw-bold">
+                                        Category <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="category_id" name="category_id" required>
+                                        <option value="">Select a category</option>
+                                        <% categories.forEach(category => { %>
+                                            <option value="<%= category.id %>" <%= course.category_id == category.id ? 'selected' : '' %>>
+                                                <%= category.name %>
+                                            </option>
+                                        <% }) %>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="level" class="form-label fw-bold">
+                                        Difficulty Level <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="level" name="level" required>
+                                        <option value="">Select difficulty level</option>
+                                        <option value="beginner" <%= course.level === 'beginner' ? 'selected' : '' %>>
+                                            Beginner - No prior knowledge needed
+                                        </option>
+                                        <option value="intermediate" <%= course.level === 'intermediate' ? 'selected' : '' %>>
+                                            Intermediate - Some experience required
+                                        </option>
+                                        <option value="advanced" <%= course.level === 'advanced' ? 'selected' : '' %>>
+                                            Advanced - Extensive knowledge needed
+                                        </option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="description" class="form-label fw-bold">
+                                        Course Description <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea class="form-control" id="description" name="description" rows="6" 
+                                              placeholder="Describe what students will learn..." required><%= course.description %></textarea>
+                                    <div class="form-text">
+                                        <i class="bi bi-chat-quote"></i> 
+                                        Explain what students will achieve and why they should take your course
+                                    </div>
+                                    <div class="mt-1">
+                                        <small class="text-muted">
+                                            <span id="descriptionCount"><%= course.description ? course.description.length : 0 %></span>/1000 characters
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Course Details Tab -->
+                <div class="tab-pane fade" id="details" role="tabpanel">
+                    <div class="card form-card">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">
+                                <i class="bi bi-gear"></i> Course Details
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="price" class="form-label fw-bold">
+                                        Course Price <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="price" name="price" 
+                                               min="0" step="0.01" value="<%= course.price %>" required>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle"></i> 
+                                        Set to $0 for a free course
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="duration" class="form-label fw-bold">
+                                        Estimated Duration
+                                    </label>
+                                    <select class="form-select" id="duration" name="duration">
+                                        <option value="">Select duration</option>
+                                        <option value="1-2 hours" <%= course.duration === '1-2 hours' ? 'selected' : '' %>>1-2 hours</option>
+                                        <option value="3-5 hours" <%= course.duration === '3-5 hours' ? 'selected' : '' %>>3-5 hours</option>
+                                        <option value="6-10 hours" <%= course.duration === '6-10 hours' ? 'selected' : '' %>>6-10 hours</option>
+                                        <option value="10+ hours" <%= course.duration === '10+ hours' ? 'selected' : '' %>>10+ hours</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="requirements" class="form-label fw-bold">
+                                        Prerequisites
+                                    </label>
+                                    <textarea class="form-control" id="requirements" name="requirements" rows="3" 
+                                              placeholder="What should students know before taking this course?"><%= course.requirements || '' %></textarea>
+                                    <div class="form-text">
+                                        <i class="bi bi-list-check"></i> 
+                                        List any required skills, software, or equipment
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="objectives" class="form-label fw-bold">
+                                        Learning Objectives
+                                    </label>
+                                    <textarea class="form-control" id="objectives" name="objectives" rows="4" 
+                                              placeholder="What will students be able to do after completing this course?"><%= course.objectives || '' %></textarea>
+                                    <div class="form-text">
+                                        <i class="bi bi-bullseye"></i> 
+                                        List 3-5 key outcomes students will achieve
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Media & Thumbnail Tab -->
+                <div class="tab-pane fade" id="media" role="tabpanel">
+                    <div class="card form-card">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">
+                                <i class="bi bi-image"></i> Course Thumbnail
+                            </h5>
+                            
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Upload New Thumbnail</label>
+                                    
+                                    <% if (course.thumbnail) { %>
+                                        <div class="mb-3">
+                                            <label class="form-label">Current Thumbnail:</label>
+                                            <img src="/uploads/<%= course.thumbnail %>" class="thumbnail-preview" alt="Current thumbnail">
+                                        </div>
+                                    <% } %>
+                                    
+                                    <div class="drag-drop-area" id="dropArea">
+                                        <i class="bi bi-cloud-upload" style="font-size: 2rem; color: #007bff;"></i>
+                                        <h6 class="mt-2">Drop new image here or click to browse</h6>
+                                        <p class="text-muted mb-0 small">Recommended: 1280x720 pixels (16:9 ratio)</p>
+                                        <input type="file" id="thumbnail" name="thumbnail" accept="image/*" style="display: none;">
+                                    </div>
+                                    <div id="imagePreview" class="mt-3" style="display: none;">
+                                        <label class="form-label">New Thumbnail Preview:</label>
+                                        <img id="previewImg" class="thumbnail-preview" alt="New thumbnail preview">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Course Preview</label>
+                                    <div class="preview-card">
+                                        <div id="coursePreview">
+                                            <% if (course.thumbnail) { %>
+                                                <img src="/uploads/<%= course.thumbnail %>" class="img-fluid rounded mb-3" style="max-height: 150px;">
+                                            <% } else { %>
+                                                <div class="bg-light rounded p-4 text-center mb-3">
+                                                    <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                                                    <p class="text-muted mb-0">Course thumbnail</p>
+                                                </div>
+                                            <% } %>
+                                            <h6 id="previewTitle"><%= course.title %></h6>
+                                            <p id="previewDescription" class="text-muted small">
+                                                <%= course.description.substring(0, 100) %>...
+                                            </p>
+                                            <div class="d-flex justify-content-between">
+                                                <span id="previewCategory" class="badge bg-secondary">
+                                                    <% categories.forEach(cat => { %>
+                                                        <% if (cat.id == course.category_id) { %><%= cat.name %><% } %>
+                                                    <% }) %>
+                                                </span>
+                                                <span id="previewPrice" class="fw-bold text-primary">
+                                                    <% if (course.price > 0) { %>$<%= course.price %><% } else { %>FREE<% } %>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Publishing Settings Tab -->
+                <div class="tab-pane fade" id="settings" role="tabpanel">
+                    <div class="card form-card">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">
+                                <i class="bi bi-sliders"></i> Publishing & Visibility Settings
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="status" class="form-label fw-bold">
+                                        Course Status <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="status" name="status" required>
+                                        <option value="draft" <%= course.status === 'draft' ? 'selected' : '' %>>
+                                            Draft - Not visible to students
+                                        </option>
+                                        <option value="published" <%= course.status === 'published' ? 'selected' : '' %>>
+                                            Published - Available to students
+                                        </option>
+                                        <option value="archived" <%= course.status === 'archived' ? 'selected' : '' %>>
+                                            Archived - Hidden from catalog
+                                        </option>
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle"></i> 
+                                        Only published courses are visible to students
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Course Visibility</label>
+                                    <div class="mt-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="featured" name="featured">
+                                            <label class="form-check-label" for="featured">
+                                                <i class="bi bi-star"></i> Request featured status
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="allow_reviews" name="allow_reviews" checked>
+                                            <label class="form-check-label" for="allow_reviews">
+                                                <i class="bi bi-chat-square-text"></i> Allow student reviews
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="allow_discussions" name="allow_discussions" checked>
+                                            <label class="form-check-label" for="allow_discussions">
+                                                <i class="bi bi-chat"></i> Enable course discussions
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <h6><i class="bi bi-info-circle"></i> Publishing Guidelines</h6>
+                                        <ul class="mb-0 small">
+                                            <li>Ensure your course has at least one module with lessons before publishing</li>
+                                            <li>Add a clear course thumbnail and description</li>
+                                            <li>Set appropriate pricing and learning objectives</li>
+                                            <li>Preview your course to ensure all content displays correctly</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="/instructor/courses" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancel Changes
+                                    </a>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-primary" onclick="previewCourse()">
+                                        <i class="bi bi-eye"></i> Preview Course
+                                    </button>
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="bi bi-check-circle"></i> Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Character counter for description
+        document.getElementById('description').addEventListener('input', function() {
+            const count = this.value.length;
+            document.getElementById('descriptionCount').textContent = count;
+            
+            if (count > 1000) {
+                this.value = this.value.substring(0, 1000);
+                document.getElementById('descriptionCount').textContent = 1000;
+            }
+        });
+        
+        // Drag and drop functionality
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('thumbnail');
+        
+        dropArea.addEventListener('click', () => fileInput.click());
+        
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.background = '#e3f2fd';
+        });
+        
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.style.background = '';
+        });
+        
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.background = '';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                previewImage(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files[0]) {
+                previewImage(this.files[0]);
+            }
+        });
+        
+        function previewImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+                updatePreview();
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Real-time preview update
+        function updatePreview() {
+            const title = document.getElementById('title').value || 'Course Title';
+            const description = document.getElementById('description').value || 'Course description...';
+            const categorySelect = document.getElementById('category_id');
+            const category = categorySelect.options[categorySelect.selectedIndex]?.text || 'Category';
+            const price = document.getElementById('price').value || '0';
+            
+            document.getElementById('previewTitle').textContent = title;
+            document.getElementById('previewDescription').textContent = description.substring(0, 100) + (description.length > 100 ? '...' : '');
+            document.getElementById('previewCategory').textContent = category;
+            document.getElementById('previewPrice').textContent = price == 0 ? 'FREE' : `$${price}`;
+            
+            // Update preview image
+            const previewImg = document.getElementById('previewImg');
+            if (previewImg.src && previewImg.src !== window.location.href) {
+                const coursePreview = document.querySelector('#coursePreview img, #coursePreview .bg-light');
+                if (coursePreview) {
+                    coursePreview.outerHTML = `<img src="${previewImg.src}" class="img-fluid rounded mb-3" style="max-height: 150px;">`;
+                }
+            }
+        }
+        
+        // Real-time preview updates
+        ['title', 'description', 'category_id', 'price'].forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.addEventListener('input', updatePreview);
+            }
+        });
+        
+        // Form validation
+        document.getElementById('editCourseForm').addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const category = document.getElementById('category_id').value;
+            const level = document.getElementById('level').value;
+            const price = document.getElementById('price').value;
+            
+            if (!title || !description || !category || !level || price === '') {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+                return false;
+            }
+        });
+        
+        function previewCourse() {
+            window.open('/courses/<%= course.id %>', '_blank');
+        }
+        
+        // Status change warning
+        document.getElementById('status').addEventListener('change', function() {
+            const status = this.value;
+            const currentStatus = '<%= course.status %>';
+            
+            if (currentStatus === 'published' && status !== 'published') {
+                if (!confirm('Changing from published status will make your course unavailable to students. Are you sure?')) {
+                    this.value = currentStatus;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

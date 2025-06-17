@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - LearnHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .search-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 200px;
+        }
+        .course-card {
+            height: 100%;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .search-highlight {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    
+    <!-- Search Hero -->
+    <div class="search-hero text-white">
+        <div class="container py-5">
+            <div class="row">
+                <div class="col-12">
+                    <nav aria-label="breadcrumb" class="mb-3">
+                        <ol class="breadcrumb text-white-50">
+                            <li class="breadcrumb-item"><a href="/courses" class="text-white-50">All Courses</a></li>
+                            <li class="breadcrumb-item active text-white">Search Results</li>
+                        </ol>
+                    </nav>
+                    
+                    <h1 class="display-6 fw-bold mb-3">Search Results</h1>
+                    <p class="lead mb-4">
+                        <% if (query) { %>
+                            Showing results for "<strong><%= query %></strong>"
+                        <% } else { %>
+                            Browse all available courses
+                        <% } %>
+                    </p>
+                    
+                    <!-- Search Bar -->
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <form method="GET" action="/courses/search" class="d-flex">
+                                <input type="text" class="form-control form-control-lg" name="q" 
+                                       placeholder="Search for courses..." value="<%= query || '' %>">
+                                <button type="submit" class="btn btn-light btn-lg ms-2">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mt-5">
+        <%- include('../partials/messages') %>
+        
+        <!-- Results Summary -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4>
+                            <%= courses.length %> 
+                            <% if (courses.length === 1) { %>result<% } else { %>results<% } %>
+                            <% if (query) { %>for "<%= query %>"<% } %>
+                        </h4>
+                        <% if (categories && categories.length > 0) { %>
+                            <p class="text-muted mb-0">
+                                Found in categories: 
+                                <% categories.forEach((cat, index) => { %>
+                                    <a href="/courses/category/<%= cat.id %>" class="text-decoration-none">
+                                        <%= cat.name %>
+                                    </a><% if (index < categories.length - 1) { %>, <% } %>
+                                <% }) %>
+                            </p>
+                        <% } %>
+                    </div>
+                    
+                    <!-- Sort Options -->
+                    <div class="d-flex align-items-center">
+                        <label for="sortSelect" class="form-label me-2 mb-0">Sort by:</label>
+                        <select class="form-select" id="sortSelect" onchange="sortResults(this.value)">
+                            <option value="relevance">Relevance</option>
+                            <option value="newest">Newest First</option>
+                            <option value="popular">Most Popular</option>
+                            <option value="title">Title A-Z</option>
+                            <option value="price_low">Price Low to High</option>
+                            <option value="price_high">Price High to Low</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Filters Sidebar -->
+            <div class="col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-funnel"></i> Refine Results
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="GET" action="/courses/search">
+                            <input type="hidden" name="q" value="<%= query || '' %>">
+                            
+                            <!-- Categories -->
+                            <% if (allCategories && allCategories.length > 0) { %>
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Categories</label>
+                                    <% allCategories.forEach(category => { %>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="categories[]" 
+                                                   value="<%= category.id %>" id="cat_<%= category.id %>">
+                                            <label class="form-check-label" for="cat_<%= category.id %>">
+                                                <%= category.name %> (<%= category.course_count %>)
+                                            </label>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            <% } %>
+                            
+                            <!-- Level Filter -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Difficulty Level</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="levels[]" value="beginner" id="level_beginner">
+                                    <label class="form-check-label" for="level_beginner">
+                                        <span class="badge bg-success">Beginner</span>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="levels[]" value="intermediate" id="level_intermediate">
+                                    <label class="form-check-label" for="level_intermediate">
+                                        <span class="badge bg-warning">Intermediate</span>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="levels[]" value="advanced" id="level_advanced">
+                                    <label class="form-check-label" for="level_advanced">
+                                        <span class="badge bg-danger">Advanced</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Price Filter -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Price</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="price[]" value="free" id="price_free">
+                                    <label class="form-check-label" for="price_free">
+                                        <i class="bi bi-gift text-success"></i> Free
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="price[]" value="paid" id="price_paid">
+                                    <label class="form-check-label" for="price_paid">
+                                        <i class="bi bi-currency-dollar text-primary"></i> Paid
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Apply Filters
+                            </button>
+                            
+                            <a href="/courses/search?q=<%= query || '' %>" class="btn btn-outline-secondary w-100 mt-2">
+                                <i class="bi bi-arrow-clockwise"></i> Clear Filters
+                            </a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search Results -->
+            <div class="col-lg-9">
+                <div class="row g-4" id="searchResults">
+                    <% if (courses && courses.length > 0) { %>
+                        <% courses.forEach(course => { %>
+                            <div class="col-md-6 col-xl-4">
+                                <div class="card course-card h-100">
+                                    <% if (course.thumbnail) { %>
+                                        <img src="/uploads/<%= course.thumbnail %>" class="card-img-top" alt="<%= course.title %>" style="height: 200px; object-fit: cover;">
+                                    <% } else { %>
+                                        <div class="card-img-top bg-gradient-primary d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            <i class="bi bi-journal-bookmark text-white" style="font-size: 3rem;"></i>
+                                        </div>
+                                    <% } %>
+                                    
+                                    <div class="card-body d-flex flex-column">
+                                        <h5 class="card-title">
+                                            <% if (query && course.title.toLowerCase().includes(query.toLowerCase())) { %>
+                                                <%- course.title.replace(new RegExp(query, 'gi'), '<span class="search-highlight">$&</span>') %>
+                                            <% } else { %>
+                                                <%= course.title %>
+                                            <% } %>
+                                        </h5>
+                                        
+                                        <p class="card-text text-muted small mb-2">
+                                            <i class="bi bi-person"></i> <%= course.first_name %> <%= course.last_name %>
+                                            <span class="ms-2">
+                                                <i class="bi bi-tag"></i> <%= course.category_name %>
+                                            </span>
+                                        </p>
+                                        
+                                        <p class="card-text flex-grow-1">
+                                            <% const description = course.description.substring(0, 100) + '...'; %>
+                                            <% if (query && course.description.toLowerCase().includes(query.toLowerCase())) { %>
+                                                <%- description.replace(new RegExp(query, 'gi'), '<span class="search-highlight">$&</span>') %>
+                                            <% } else { %>
+                                                <%= description %>
+                                            <% } %>
+                                        </p>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="badge bg-<%= course.level === 'beginner' ? 'success' : course.level === 'intermediate' ? 'warning' : 'danger' %>">
+                                                <%= course.level.charAt(0).toUpperCase() + course.level.slice(1) %>
+                                            </span>
+                                            <span class="fw-bold text-primary">
+                                                <% if (course.price > 0) { %>
+                                                    $<%= course.price %>
+                                                <% } else { %>
+                                                    Free
+                                                <% } %>
+                                            </span>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <small class="text-muted">
+                                                <i class="bi bi-people"></i> <%= course.total_enrollments %> students
+                                                <span class="ms-2">
+                                                    <i class="bi bi-star-fill text-warning"></i> 4.5
+                                                </span>
+                                            </small>
+                                        </div>
+                                        
+                                        <a href="/courses/<%= course.id %>" class="btn btn-primary mt-auto">
+                                            <i class="bi bi-eye"></i> View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="bi bi-search text-muted" style="font-size: 5rem;"></i>
+                                <h3 class="mt-3">No courses found</h3>
+                                <% if (query) { %>
+                                    <p class="text-muted">No courses match your search for "<%= query %>"</p>
+                                    <p class="text-muted">Try:</p>
+                                    <ul class="list-unstyled text-muted">
+                                        <li>• Checking your spelling</li>
+                                        <li>• Using different keywords</li>
+                                        <li>• Browsing by category</li>
+                                        <li>• Removing some filters</li>
+                                    </ul>
+                                <% } else { %>
+                                    <p class="text-muted">Enter a search term to find courses</p>
+                                <% } %>
+                                
+                                <div class="d-flex justify-content-center gap-2 mt-4">
+                                    <a href="/courses" class="btn btn-primary">
+                                        <i class="bi bi-grid"></i> Browse All Courses
+                                    </a>
+                                    <% if (query) { %>
+                                        <a href="/courses/search" class="btn btn-outline-secondary">
+                                            <i class="bi bi-arrow-clockwise"></i> Clear Search
+                                        </a>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+                
+                <!-- Popular Searches (if no results) -->
+                <% if (courses.length === 0 && popularSearches && popularSearches.length > 0) { %>
+                    <div class="row mt-5">
+                        <div class="col-12">
+                            <h5>Popular Searches</h5>
+                            <div class="d-flex flex-wrap gap-2">
+                                <% popularSearches.forEach(search => { %>
+                                    <a href="/courses/search?q=<%= encodeURIComponent(search) %>" class="btn btn-outline-primary btn-sm">
+                                        <%= search %>
+                                    </a>
+                                <% }) %>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function sortResults(sortBy) {
+            const url = new URL(window.location);
+            url.searchParams.set('sort', sortBy);
+            window.location.href = url.toString();
+        }
+        
+        // Auto-submit form on filter change
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Optional: Auto-submit form when filters change
+                // this.form.submit();
+            });
+        });
+    </script>
+</body>
+</html>

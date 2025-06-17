@@ -1,0 +1,81 @@
+@startuml LearnHub_Use_Case_Simple
+
+' Simplified LearnHub Use Case Diagram
+' For easy understanding and implementation
+
+left to right direction
+scale 1.1
+
+' Simple styling
+skinparam {
+  DefaultFontSize 12
+  BackgroundColor white
+  TitleFontSize 18
+  ArrowColor #2c3e50
+  RoundCorner 5
+}
+
+skinparam usecase {
+  BackgroundColor #ecf0f1
+  BorderColor #2c3e50
+  FontColor #2c3e50
+}
+
+skinparam actor {
+  BackgroundColor white
+  BorderColor #2c3e50
+  FontColor #2c3e50
+}
+
+title "LearnHub E-Learning Platform - Simplified Use Case"
+
+' Define actors
+actor "Student" as Student
+actor "Instructor" as Instructor  
+actor "Admin" as Admin
+
+' Define system boundary
+rectangle "LearnHub System" {
+  
+  ' Authentication
+  usecase "Login/Register" as UC1
+  
+  ' Student Features
+  usecase "Browse Courses" as UC2
+  usecase "Enroll in Course" as UC3
+  usecase "Learn Course" as UC4
+  
+  ' Instructor Features  
+  usecase "Create Course" as UC5
+  usecase "Manage Content" as UC6
+  
+  ' Admin Features
+  usecase "Manage Users" as UC7
+  usecase "Manage Categories" as UC8
+}
+
+' Student relationships
+Student --> UC1
+Student --> UC2
+Student --> UC3
+Student --> UC4
+
+' Instructor relationships
+Instructor --> UC1
+Instructor --> UC5
+Instructor --> UC6
+
+' Admin relationships  
+Admin --> UC1
+Admin --> UC7
+Admin --> UC8
+
+' Dependencies
+UC3 ..> UC1 : <<include>>
+UC4 ..> UC1 : <<include>>
+UC5 ..> UC1 : <<include>>
+UC6 ..> UC1 : <<include>>
+UC7 ..> UC1 : <<include>>
+UC8 ..> UC1 : <<include>>
+
+@enduml

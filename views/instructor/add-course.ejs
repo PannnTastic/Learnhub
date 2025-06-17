@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Course - LearnHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .form-step {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    
+    <div class="container mt-4">
+        <%- include('../partials/messages') %>
+        
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/instructor/dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/instructor/courses">My Courses</a></li>
+                <li class="breadcrumb-item active">Create Course</li>
+            </ol>
+        </nav>
+        
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="text-center">
+                    <h1 class="h3 mb-2">
+                        <i class="bi bi-plus-circle text-primary"></i> Create New Course
+                    </h1>
+                    <p class="text-muted">Share your knowledge with students around the world</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-step p-4">
+                    <form method="POST" action="/instructor/courses/add" enctype="multipart/form-data">
+                        <!-- Course Title -->
+                        <div class="mb-4">
+                            <label for="title" class="form-label">
+                                <i class="bi bi-journal-text"></i> Course Title <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="title" name="title" 
+                                   placeholder="e.g., Complete Web Development Bootcamp" required>
+                            <div class="form-text">Give your course a descriptive and engaging title</div>
+                        </div>
+                        
+                        <!-- Course Description -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label">
+                                <i class="bi bi-card-text"></i> Course Description <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="description" name="description" rows="4" 
+                                      placeholder="Describe what students will learn in this course..." required></textarea>
+                            <div class="form-text">Explain what students will learn and achieve</div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Category -->
+                            <div class="col-md-6 mb-4">
+                                <label for="category_id" class="form-label">
+                                    <i class="bi bi-tag"></i> Category <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="category_id" name="category_id" required>
+                                    <option value="">Choose a category</option>
+                                    <% categories.forEach(category => { %>
+                                        <option value="<%= category.id %>"><%= category.name %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                            
+                            <!-- Level -->
+                            <div class="col-md-6 mb-4">
+                                <label for="level" class="form-label">
+                                    <i class="bi bi-signal"></i> Difficulty Level <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="level" name="level" required>
+                                    <option value="">Select difficulty</option>
+                                    <option value="beginner">
+                                        <i class="bi bi-1-circle"></i> Beginner - No prior experience needed
+                                    </option>
+                                    <option value="intermediate">
+                                        <i class="bi bi-2-circle"></i> Intermediate - Some experience helpful
+                                    </option>
+                                    <option value="advanced">
+                                        <i class="bi bi-3-circle"></i> Advanced - Extensive experience required
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Price -->
+                            <div class="col-md-6 mb-4">
+                                <label for="price" class="form-label">
+                                    <i class="bi bi-currency-dollar"></i> Course Price
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="price" name="price" 
+                                           min="0" step="0.01" value="0" placeholder="0.00">
+                                </div>
+                                <div class="form-text">Set to 0 for free courses</div>
+                            </div>
+                            
+                            <!-- Thumbnail Upload -->
+                            <div class="col-md-6 mb-4">
+                                <label for="thumbnail" class="form-label">
+                                    <i class="bi bi-image"></i> Course Thumbnail
+                                </label>
+                                <input type="file" class="form-control" id="thumbnail" name="thumbnail" 
+                                       accept="image/*">
+                                <div class="form-text">Upload an attractive course image (optional)</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Course Objectives -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="bi bi-list-check"></i> What will students learn?
+                            </label>
+                            <div id="objectives-container">
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" name="objectives[]" 
+                                           placeholder="e.g., Build responsive websites with HTML, CSS, and JavaScript">
+                                    <button type="button" class="btn btn-outline-danger" onclick="removeObjective(this)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addObjective()">
+                                <i class="bi bi-plus"></i> Add Learning Objective
+                            </button>
+                            <div class="form-text">List the key skills and knowledge students will gain</div>
+                        </div>
+                        
+                        <!-- Course Requirements -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="bi bi-gear"></i> Course Requirements
+                            </label>
+                            <div id="requirements-container">
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" name="requirements[]" 
+                                           placeholder="e.g., Basic computer skills and internet access">
+                                    <button type="button" class="btn btn-outline-danger" onclick="removeRequirement(this)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addRequirement()">
+                                <i class="bi bi-plus"></i> Add Requirement
+                            </button>
+                            <div class="form-text">What do students need before taking this course?</div>
+                        </div>
+                        
+                        <!-- Submit Buttons -->
+                        <div class="d-flex gap-3 justify-content-center mt-5">
+                            <button type="submit" name="status" value="draft" class="btn btn-outline-primary btn-lg">
+                                <i class="bi bi-save"></i> Save as Draft
+                            </button>
+                            <button type="submit" name="status" value="published" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send"></i> Create & Publish
+                            </button>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="/instructor/courses" class="btn btn-link">
+                                <i class="bi bi-arrow-left"></i> Back to My Courses
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Help Section -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-question-circle"></i> Need Help Creating Your Course?
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6>📝 Course Title Tips</h6>
+                                <ul class="small">
+                                    <li>Keep it clear and specific</li>
+                                    <li>Include the main benefit</li>
+                                    <li>Use keywords students search for</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>📖 Description Guidelines</h6>
+                                <ul class="small">
+                                    <li>Explain what students will achieve</li>
+                                    <li>Mention the course format</li>
+                                    <li>Include your credentials</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <h6>🎯 Setting Objectives</h6>
+                                <ul class="small">
+                                    <li>Be specific and measurable</li>
+                                    <li>Focus on practical skills</li>
+                                    <li>List 3-5 key outcomes</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function addObjective() {
+            const container = document.getElementById('objectives-container');
+            const div = document.createElement('div');
+            div.className = 'input-group mb-2';
+            div.innerHTML = `
+                <input type="text" class="form-control" name="objectives[]" 
+                       placeholder="Add another learning objective">
+                <button type="button" class="btn btn-outline-danger" onclick="removeObjective(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+        
+        function removeObjective(button) {
+            const container = document.getElementById('objectives-container');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+        
+        function addRequirement() {
+            const container = document.getElementById('requirements-container');
+            const div = document.createElement('div');
+            div.className = 'input-group mb-2';
+            div.innerHTML = `
+                <input type="text" class="form-control" name="requirements[]" 
+                       placeholder="Add another requirement">
+                <button type="button" class="btn btn-outline-danger" onclick="removeRequirement(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+        
+        function removeRequirement(button) {
+            const container = document.getElementById('requirements-container');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+        
+        // Preview thumbnail
+        document.getElementById('thumbnail').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // You can add preview functionality here
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>

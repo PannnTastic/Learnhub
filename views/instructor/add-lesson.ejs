@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Lesson - <%= module.title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .form-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .form-card {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 15px;
+        }
+        .lesson-type-card {
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .lesson-type-card:hover {
+            border-color: #007bff;
+            background: #f8f9fa;
+        }
+        .lesson-type-card.selected {
+            border-color: #007bff;
+            background: #e3f2fd;
+        }
+        .lesson-type-card .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .video-preview {
+            background: #000;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    
+    <!-- Header -->
+    <div class="form-header text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <nav aria-label="breadcrumb" class="mb-2">
+                        <ol class="breadcrumb text-white-50">
+                            <li class="breadcrumb-item"><a href="/instructor/courses" class="text-white-50">My Courses</a></li>
+                            <li class="breadcrumb-item"><a href="/instructor/courses/<%= course.id %>/content" class="text-white-50"><%= course.title %></a></li>
+                            <li class="breadcrumb-item active text-white">Add Lesson</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-plus-circle"></i> Add Lesson to "<%= module.title %>"
+                    </h1>
+                    <p class="mb-0">Create engaging content for your students</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="/instructor/courses/<%= course.id %>/content" class="btn btn-light">
+                        <i class="bi bi-arrow-left"></i> Back to Content
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mt-5">
+        <%- include('../partials/messages') %>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card form-card">
+                    <div class="card-body p-4">
+                        <form action="/instructor/courses/<%= course.id %>/modules/<%= module.id %>/lessons/add" method="POST">
+                            
+                            <!-- Step 1: Basic Information -->
+                            <h4 class="mb-4">
+                                <i class="bi bi-info-circle"></i> Lesson Information
+                            </h4>
+                            
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-8">
+                                    <label for="title" class="form-label fw-bold">
+                                        Lesson Title <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control form-control-lg" id="title" name="title" 
+                                           placeholder="e.g., Variables and Data Types" required>
+                                    <div class="form-text">
+                                        <i class="bi bi-lightbulb"></i> 
+                                        Create a clear, specific title that describes what students will learn
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="duration" class="form-label fw-bold">
+                                        Duration (minutes) <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" class="form-control" id="duration" name="duration" 
+                                           min="1" max="180" placeholder="15" required>
+                                    <div class="form-text">
+                                        <i class="bi bi-clock"></i> Estimated time to complete
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="position" class="form-label fw-bold">
+                                        Lesson Position <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" class="form-control" id="position" name="position" 
+                                           min="0" value="1" required>
+                                    <div class="form-text">Order within the module</div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" id="is_free" name="is_free">
+                                        <label class="form-check-label fw-bold" for="is_free">
+                                            <i class="bi bi-unlock"></i> Free Preview Lesson
+                                        </label>
+                                        <div class="form-text">Allow students to view this lesson before enrolling</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 2: Lesson Type Selection -->
+                            <h4 class="mb-4">
+                                <i class="bi bi-type"></i> Choose Lesson Type
+                            </h4>
+                            
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <div class="lesson-type-card" data-type="video">
+                                        <div class="icon text-primary">
+                                            <i class="bi bi-play-circle"></i>
+                                        </div>
+                                        <h6>Video Lesson</h6>
+                                        <p class="text-muted small mb-0">Upload or embed video content</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="lesson-type-card" data-type="text">
+                                        <div class="icon text-info">
+                                            <i class="bi bi-file-text"></i>
+                                        </div>
+                                        <h6>Text/Reading</h6>
+                                        <p class="text-muted small mb-0">Written content and articles</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="lesson-type-card" data-type="quiz">
+                                        <div class="icon text-warning">
+                                            <i class="bi bi-question-circle"></i>
+                                        </div>
+                                        <h6>Quiz</h6>
+                                        <p class="text-muted small mb-0">Test student knowledge</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="lesson-type-card" data-type="assignment">
+                                        <div class="icon text-success">
+                                            <i class="bi bi-clipboard-check"></i>
+                                        </div>
+                                        <h6>Assignment</h6>
+                                        <p class="text-muted small mb-0">Practical exercises</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <input type="hidden" id="type" name="type" required>
+                            
+                            <!-- Step 3: Content Sections -->
+                            
+                            <!-- Video Content Section -->
+                            <div class="content-section" id="video-content">
+                                <h5 class="mb-3">
+                                    <i class="bi bi-play-circle"></i> Video Content
+                                </h5>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="video_url" class="form-label fw-bold">
+                                            Video URL
+                                        </label>
+                                        <input type="url" class="form-control" id="video_url" name="video_url" 
+                                               placeholder="https://youtube.com/watch?v=... or https://vimeo.com/...">
+                                        <div class="form-text">
+                                            <i class="bi bi-link"></i> 
+                                            YouTube, Vimeo, or direct video file URL
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Video Preview</label>
+                                        <div class="video-preview" id="videoPreview">
+                                            <i class="bi bi-play-circle" style="font-size: 3rem;"></i>
+                                            <p class="mt-2 mb-0">Video preview will appear here</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Text Content Section -->
+                            <div class="content-section" id="text-content">
+                                <h5 class="mb-3">
+                                    <i class="bi bi-file-text"></i> Text Content
+                                </h5>
+                                
+                                <div class="mb-3">
+                                    <label for="content" class="form-label fw-bold">
+                                        Lesson Content
+                                    </label>
+                                    <textarea class="form-control" id="content" name="content" rows="10" 
+                                              placeholder="Write your lesson content here. You can use HTML formatting..."></textarea>
+                                    <div class="form-text">
+                                        <i class="bi bi-markdown"></i> 
+                                        Supports HTML formatting. Use headings, lists, bold, italic, etc.
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <h6>Formatting Tips:</h6>
+                                                <ul class="small mb-0">
+                                                    <li><code>&lt;h3&gt;Heading&lt;/h3&gt;</code> for sections</li>
+                                                    <li><code>&lt;strong&gt;Bold text&lt;/strong&gt;</code></li>
+                                                    <li><code>&lt;em&gt;Italic text&lt;/em&gt;</code></li>
+                                                    <li><code>&lt;ul&gt;&lt;li&gt;List item&lt;/li&gt;&lt;/ul&gt;</code></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <h6>Content Guidelines:</h6>
+                                                <ul class="small mb-0">
+                                                    <li>Break content into digestible sections</li>
+                                                    <li>Use examples and practical applications</li>
+                                                    <li>Include relevant images or diagrams</li>
+                                                    <li>End with key takeaways</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Quiz Content Section -->
+                            <div class="content-section" id="quiz-content">
+                                <h5 class="mb-3">
+                                    <i class="bi bi-question-circle"></i> Quiz Content
+                                </h5>
+                                
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Quiz Builder Coming Soon!</strong> For now, you can create a lesson that describes the quiz content. Full quiz functionality will be available in a future update.
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="quiz_description" class="form-label fw-bold">
+                                        Quiz Description
+                                    </label>
+                                    <textarea class="form-control" id="quiz_description" name="content" rows="5" 
+                                              placeholder="Describe what this quiz will cover and what students should know before taking it..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Assignment Content Section -->
+                            <div class="content-section" id="assignment-content">
+                                <h5 class="mb-3">
+                                    <i class="bi bi-clipboard-check"></i> Assignment Content
+                                </h5>
+                                
+                                <div class="mb-3">
+                                    <label for="assignment_instructions" class="form-label fw-bold">
+                                        Assignment Instructions
+                                    </label>
+                                    <textarea class="form-control" id="assignment_instructions" name="content" rows="8" 
+                                              placeholder="Provide clear instructions for the assignment. Include objectives, requirements, and submission guidelines..."></textarea>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <h6>Good Assignment Practices:</h6>
+                                                <ul class="small mb-0">
+                                                    <li>Clear objectives and outcomes</li>
+                                                    <li>Step-by-step instructions</li>
+                                                    <li>Expected time to complete</li>
+                                                    <li>Submission format and requirements</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <h6>Include These Elements:</h6>
+                                                <ul class="small mb-0">
+                                                    <li>Learning objectives</li>
+                                                    <li>Required resources or tools</li>
+                                                    <li>Evaluation criteria</li>
+                                                    <li>Due date or timeline</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-5">
+                                <a href="/instructor/courses/<%= course.id %>/content" class="btn btn-outline-secondary btn-lg">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-success btn-lg" id="submitBtn" disabled>
+                                    <i class="bi bi-check-circle"></i> Create Lesson
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Lesson type selection
+        document.querySelectorAll('.lesson-type-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove previous selection
+                document.querySelectorAll('.lesson-type-card').forEach(c => c.classList.remove('selected'));
+                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                
+                // Select this type
+                this.classList.add('selected');
+                const type = this.dataset.type;
+                document.getElementById('type').value = type;
+                document.getElementById(`${type}-content`).classList.add('active');
+                
+                // Enable submit button
+                document.getElementById('submitBtn').disabled = false;
+            });
+        });
+        
+        // Video URL preview
+        document.getElementById('video_url').addEventListener('input', function() {
+            const url = this.value;
+            const preview = document.getElementById('videoPreview');
+            
+            if (url) {
+                if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                    preview.innerHTML = `
+                        <i class="bi bi-youtube text-danger" style="font-size: 3rem;"></i>
+                        <p class="mt-2 mb-0">YouTube Video Detected</p>
+                        <small>Video will be embedded automatically</small>
+                    `;
+                } else if (url.includes('vimeo.com')) {
+                    preview.innerHTML = `
+                        <i class="bi bi-vimeo text-info" style="font-size: 3rem;"></i>
+                        <p class="mt-2 mb-0">Vimeo Video Detected</p>
+                        <small>Video will be embedded automatically</small>
+                    `;
+                } else {
+                    preview.innerHTML = `
+                        <i class="bi bi-camera-video" style="font-size: 3rem;"></i>
+                        <p class="mt-2 mb-0">Direct Video URL</p>
+                        <small>Make sure the URL is publicly accessible</small>
+                    `;
+                }
+            } else {
+                preview.innerHTML = `
+                    <i class="bi bi-play-circle" style="font-size: 3rem;"></i>
+                    <p class="mt-2 mb-0">Video preview will appear here</p>
+                `;
+            }
+        });
+        
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const duration = document.getElementById('duration').value;
+            const type = document.getElementById('type').value;
+            const position = document.getElementById('position').value;
+            
+            if (!title || !duration || !type || !position) {
+                e.preventDefault();
+                alert('Please fill in all required fields and select a lesson type');
+                return false;
+            }
+            
+            // Type-specific validation
+            if (type === 'video') {
+                const videoUrl = document.getElementById('video_url').value;
+                if (!videoUrl) {
+                    e.preventDefault();
+                    alert('Please provide a video URL for video lessons');
+                    return false;
+                }
+            } else if (type === 'text' || type === 'quiz' || type === 'assignment') {
+                const content = document.querySelector('.content-section.active textarea').value.trim();
+                if (!content) {
+                    e.preventDefault();
+                    alert('Please provide content for this lesson');
+                    return false;
+                }
+            }
+        });
+        
+        // Character counter for content areas
+        document.querySelectorAll('textarea[name="content"]').forEach(textarea => {
+            const maxLength = 5000;
+            
+            const counterDiv = document.createElement('div');
+            counterDiv.className = 'form-text text-end mt-1';
+            counterDiv.innerHTML = `<small><span class="char-count">0</span>/${maxLength} characters</small>`;
+            textarea.parentNode.appendChild(counterDiv);
+            
+            textarea.addEventListener('input', function() {
+                const charCount = this.value.length;
+                const counter = counterDiv.querySelector('.char-count');
+                counter.textContent = charCount;
+                
+                if (charCount > maxLength) {
+                    this.value = this.value.substring(0, maxLength);
+                    counter.textContent = maxLength;
+                }
+                
+                if (charCount > maxLength * 0.9) {
+                    counter.className = 'char-count text-warning';
+                } else if (charCount === maxLength) {
+                    counter.className = 'char-count text-danger';
+                } else {
+                    counter.className = 'char-count';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

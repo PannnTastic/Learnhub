@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Module - <%= course.title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .form-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .form-card {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 15px;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    
+    <!-- Header -->
+    <div class="form-header text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <nav aria-label="breadcrumb" class="mb-2">
+                        <ol class="breadcrumb text-white-50">
+                            <li class="breadcrumb-item"><a href="/instructor/courses" class="text-white-50">My Courses</a></li>
+                            <li class="breadcrumb-item"><a href="/instructor/courses/<%= course.id %>/content" class="text-white-50"><%= course.title %></a></li>
+                            <li class="breadcrumb-item active text-white">Add Module</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-folder-plus"></i> Add New Module
+                    </h1>
+                    <p class="mb-0">Organize your course content into logical sections</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="/instructor/courses/<%= course.id %>/content" class="btn btn-light">
+                        <i class="bi bi-arrow-left"></i> Back to Content
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mt-5">
+        <%- include('../partials/messages') %>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card form-card">
+                    <div class="card-body p-4">
+                        <h4 class="mb-4">
+                            <i class="bi bi-info-circle"></i> Module Information
+                        </h4>
+                        
+                        <form action="/instructor/courses/<%= course.id %>/modules/add" method="POST">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="title" class="form-label fw-bold">
+                                        Module Title <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control form-control-lg" id="title" name="title" 
+                                           placeholder="e.g., Introduction to Programming Basics" required>
+                                    <div class="form-text">
+                                        <i class="bi bi-lightbulb"></i> 
+                                        Choose a clear, descriptive title that explains what this module covers
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="description" class="form-label fw-bold">
+                                        Module Description
+                                    </label>
+                                    <textarea class="form-control" id="description" name="description" rows="4" 
+                                              placeholder="Describe what students will learn in this module..."></textarea>
+                                    <div class="form-text">
+                                        <i class="bi bi-chat-quote"></i> 
+                                        Provide an overview of the topics and concepts covered in this module
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="position" class="form-label fw-bold">
+                                        Module Position <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" class="form-control" id="position" name="position" 
+                                           min="0" value="1" required>
+                                    <div class="form-text">
+                                        <i class="bi bi-arrow-up-down"></i> 
+                                        The order in which this module appears in the course
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Estimated Duration</label>
+                                    <select class="form-select" id="estimated_duration" name="estimated_duration">
+                                        <option value="">Select duration</option>
+                                        <option value="30 minutes">30 minutes</option>
+                                        <option value="1 hour">1 hour</option>
+                                        <option value="2 hours">2 hours</option>
+                                        <option value="3+ hours">3+ hours</option>
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="bi bi-clock"></i> 
+                                        How long should students expect to spend on this module?
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info mt-4">
+                                <h6><i class="bi bi-info-circle"></i> Module Planning Tips</h6>
+                                <ul class="mb-0">
+                                    <li>Keep modules focused on a single topic or concept</li>
+                                    <li>Plan for 3-7 lessons per module for optimal learning</li>
+                                    <li>Start with an overview and end with a summary or quiz</li>
+                                    <li>Consider the logical flow from one module to the next</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="/instructor/courses/<%= course.id %>/content" class="btn btn-outline-secondary btn-lg">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-check-circle"></i> Create Module
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Module Structure Guide -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-book"></i> Module Structure Guide
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary">Good Module Examples:</h6>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                        <strong>Introduction to Variables</strong><br>
+                                        <small class="text-muted">Focused, specific topic</small>
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                        <strong>Working with Arrays and Lists</strong><br>
+                                        <small class="text-muted">Related concepts grouped together</small>
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                        <strong>Building Your First Web Page</strong><br>
+                                        <small class="text-muted">Practical, hands-on approach</small>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-warning">Avoid These Patterns:</h6>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="bi bi-x-circle text-danger"></i>
+                                        <strong>Everything About Programming</strong><br>
+                                        <small class="text-muted">Too broad and overwhelming</small>
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-x-circle text-danger"></i>
+                                        <strong>Module 1</strong><br>
+                                        <small class="text-muted">Not descriptive enough</small>
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-x-circle text-danger"></i>
+                                        <strong>Random Programming Tips</strong><br>
+                                        <small class="text-muted">Lacks clear learning objective</small>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-suggest position based on existing modules
+        // This would be enhanced with actual data from the server
+        document.addEventListener('DOMContentLoaded', function() {
+            // You could fetch existing module count and suggest next position
+            // For now, we'll start with position 1
+        });
+        
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const position = document.getElementById('position').value;
+            
+            if (!title) {
+                e.preventDefault();
+                alert('Please enter a module title');
+                document.getElementById('title').focus();
+                return false;
+            }
+            
+            if (!position || position < 0) {
+                e.preventDefault();
+                alert('Please enter a valid position number');
+                document.getElementById('position').focus();
+                return false;
+            }
+        });
+        
+        // Character counter for description
+        const descriptionTextarea = document.getElementById('description');
+        const maxLength = 500;
+        
+        // Create character counter
+        const counterDiv = document.createElement('div');
+        counterDiv.className = 'form-text text-end mt-1';
+        counterDiv.innerHTML = `<small><span id="charCount">0</span>/${maxLength} characters</small>`;
+        descriptionTextarea.parentNode.appendChild(counterDiv);
+        
+        descriptionTextarea.addEventListener('input', function() {
+            const charCount = this.value.length;
+            document.getElementById('charCount').textContent = charCount;
+            
+            if (charCount > maxLength) {
+                this.value = this.value.substring(0, maxLength);
+                document.getElementById('charCount').textContent = maxLength;
+            }
+            
+            // Change color based on character count
+            const counter = document.getElementById('charCount');
+            if (charCount > maxLength * 0.9) {
+                counter.className = 'text-warning';
+            } else if (charCount === maxLength) {
+                counter.className = 'text-danger';
+            } else {
+                counter.className = '';
+            }
+        });
+    </script>
+</body>
+</html>

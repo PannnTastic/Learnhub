@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Course - Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+        }
+        .form-card {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 15px;
+        }
+        .nav-pills .nav-link {
+            border-radius: 25px;
+            margin-right: 10px;
+        }
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+        }
+        .drag-drop-area {
+            border: 2px dashed #dc3545;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .drag-drop-area:hover {
+            background: #f8f9fa;
+        }
+        .thumbnail-preview {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .admin-badge {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+        }
+        .preview-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+        .floating-label {
+            position: relative;
+        }
+        .floating-label .form-control:focus ~ label,
+        .floating-label .form-control:not(:placeholder-shown) ~ label {
+            transform: translateY(-1.5rem) scale(0.8);
+            color: #dc3545;
+        }
+        .floating-label label {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            transition: all 0.3s;
+            pointer-events: none;
+            background: white;
+            padding: 0 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    
+    <!-- Header -->
+    <div class="admin-header text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <nav aria-label="breadcrumb" class="mb-2">
+                        <ol class="breadcrumb text-white-50">
+                            <li class="breadcrumb-item"><a href="/admin/dashboard" class="text-white-50">Admin Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="/admin/courses" class="text-white-50">Courses</a></li>
+                            <li class="breadcrumb-item active text-white">Add New Course</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-plus-circle"></i> Add New Course
+                    </h1>
+                    <p class="mb-0">Create a new course and assign it to an instructor</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="admin-badge">
+                        <i class="bi bi-shield-check"></i> Admin Access
+                    </span>
+                    <a href="/admin/courses" class="btn btn-light ms-2">
+                        <i class="bi bi-arrow-left"></i> Back to Courses
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mt-5">
+        <%- include('../partials/messages') %>
+        
+        <!-- Admin Notice -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle"></i> Admin Course Creation</h6>
+                    <p class="mb-0">
+                        As an administrator, you can create courses on behalf of instructors. The assigned instructor will gain full management rights to the course after creation.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills mb-4" id="addCourseTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="basic-tab" data-bs-toggle="pill" data-bs-target="#basic" type="button" role="tab">
+                    <i class="bi bi-info-circle"></i> Course Information
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="instructor-tab" data-bs-toggle="pill" data-bs-target="#instructor" type="button" role="tab">
+                    <i class="bi bi-person-check"></i> Instructor Assignment
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="details-tab" data-bs-toggle="pill" data-bs-target="#details" type="button" role="tab">
+                    <i class="bi bi-gear"></i> Course Details
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="media-tab" data-bs-toggle="pill" data-bs-target="#media" type="button" role="tab">
+                    <i class="bi bi-image"></i> Media & Settings
+                </button>
+            </li>
+        </ul>
+        
+        <!-- Form Container -->
+        <form action="/admin/courses/add" method="POST" enctype="multipart/form-data" id="addCourseForm">
+            
+            <!-- Tab Content -->
+            <div class="tab-content" id="addCourseTabsContent">
+                
+                <!-- Basic Information Tab -->
+                <div class="tab-pane fade show active" id="basic" role="tabpanel">
+                    <div class="card form-card">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">
+                                <i class="bi bi-info-circle"></i> Basic Course Information
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="title" class="form-label fw-bold">
+                                        Course Title <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control form-control-lg" id="title" name="title" 
+                                           placeholder="Enter course title..." required>
+                                    <div class="form-text">
+                                        <i class="bi bi-lightbulb"></i> 
+                                        Make it clear, specific, and appealing to students
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="category_id" class="form-label fw-bold">
+                                        Category <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="category_id" name="category_id" required>
+                                        <option value="">Select a category</option>
+                                        <% categories.forEach(category => { %>
+                                            <option value="<%= category.id %>">
+                                                <%= category.name %>
+                                            </option>
+                                        <% }) %>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="level" class="form-label fw-bold">
+                                        Difficulty Level <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="level" name="level" required>
+                                        <option value="">Select difficulty level</option>
+                                        <option value="beginner">Beginner - No prior knowledge needed</option>
+                                        <option value="intermediate">Intermediate - Some experience required</option>
+                                        <option value="advanced">Advanced - Extensive knowledge needed</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="description" class="form-label fw-bold">
+                                        Course Description <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea class="form-control" id="description" name="description" rows="6" 
+                                              placeholder="Describe what students will learn in this course..." required></textarea>
+                                    <div class="form-text">
+                                        <i class="bi bi-chat-quote"></i> 
+                                        Explain what students will achieve and why they should take this course
+                                    </div>
+                                    <div class="mt-1">
+                                        <small class="text-muted">
+                                            <span id="descriptionCount">0</span>/1000 characters
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Instructor Assignment Tab -->
+                <div class="tab-pane fade" id="instructor" role="tabpanel">
+                    <div class="card form-card">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">
+                                <i class="bi bi-person-check"></i> Instructor Assignment
+                            </h5>
+                            
+                            <div class="alert alert-warning">
+                                <h6><i class="bi bi-exclamation-triangle"></i> Important</h6>
+                                <p class="mb-0">
+                                    The selected instructor will become the owner of this course and will have full access to manage its content and settings.
+                                </p>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label for="instructor_id" class="form-label fw-bold">
+                                        Select Instructor <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="instructor_id" name="instructor_id" required>
+                                        <option value="">Choose an instructor</option>
+                                        <% instructors.forEach(instructor => { %>
+                                            <option value="<%= instructor.id %>">
+                                                <%= instructor.first_name %> <%= instructor.last_name %> (@<%= instructor.username %>)
+                                            </option>
+                                        <% }) %>
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="bi bi-person-badge"></i> 
+                                        Select the instructor who will manage this course
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-person-circle" style="font-size: 3rem; color: #dc3545;"></i>
+                                            <h6 class="mt-2">Instructor Profile</h6>
+                                            <p class="text-muted small">Selected instructor details will appear here</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="notify_instructor" name="notify_instructor" checked>
+                                        <label class="form-check-label" for="notify_instructor">
+                                            <i class="bi bi-envelope"></i> Notify instructor via email about the new course assignment
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Course Details Tab -->
+                <div class="tab-pane fade" id="details" role="tabpanel">
+                    <div class="card form-card">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">
+                                <i class="bi bi-gear"></i> Course Details & Pricing
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="price" class="form-label fw-bold">
+                                        Course Price <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="price" name="price" 
+                                               min="0" step="0.01" value="0" required>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle"></i> 
+                                        Set to $0 for a free course
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="duration" class="form-label fw-bold">
+                                        Estimated Duration
+                                    </label>
+                                    <select class="form-select" id="duration" name="duration">
+                                        <option value="">Select duration</option>
+                                        <option value="1-2 hours">1-2 hours</option>
+                                        <option value="3-5 hours">3-5 hours</option>
+                                        <option value="6-10 hours">6-10 hours</option>
+                                        <option value="10+ hours">10+ hours</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="requirements" class="form-label fw-bold">
+                                        Prerequisites & Requirements
+                                    </label>
+                                    <textarea class="form-control" id="requirements" name="requirements" rows="3" 
+                                              placeholder="What should students know or have before taking this course?"></textarea>
+                                    <div class="form-text">
+                                        <i class="bi bi-list-check"></i> 
+                                        List any required skills, software, or equipment
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="objectives" class="form-label fw-bold">
+                                        Learning Objectives
+                                    </label>
+                                    <textarea class="form-control" id="objectives" name="objectives" rows="4" 
+                                              placeholder="What will students be able to do after completing this course?"></textarea>
+                                    <div class="form-text">
+                                        <i class="bi bi-bullseye"></i> 
+                                        List 3-5 key outcomes students will achieve
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Media & Settings Tab -->
+                <div class="tab-pane fade" id="media" role="tabpanel">
+                    <div class="card form-card">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">
+                                <i class="bi bi-image"></i> Course Media & Publishing Settings
+                            </h5>
+                            
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">Course Thumbnail</h6>
+                                    
+                                    <div class="drag-drop-area" id="dropArea">
+                                        <i class="bi bi-cloud-upload" style="font-size: 2rem; color: #dc3545;"></i>
+                                        <h6 class="mt-2">Drop image here or click to browse</h6>
+                                        <p class="text-muted mb-0 small">Recommended: 1280x720 pixels (16:9 ratio)</p>
+                                        <input type="file" id="thumbnail" name="thumbnail" accept="image/*" style="display: none;">
+                                    </div>
+                                    <div id="imagePreview" class="mt-3" style="display: none;">
+                                        <label class="form-label">Thumbnail Preview:</label>
+                                        <img id="previewImg" class="thumbnail-preview" alt="Thumbnail preview">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">Publishing Settings</h6>
+                                    
+                                    <div class="mb-3">
+                                        <label for="status" class="form-label fw-bold">
+                                            Course Status <span class="text-danger">*</span>
+                                        </label>
+                                        <select class="form-select" id="status" name="status" required>
+                                            <option value="draft" selected>Draft - Not visible to students</option>
+                                            <option value="published">Published - Available to students</option>
+                                            <option value="archived">Archived - Hidden from catalog</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <h6 class="fw-bold">Visibility Options</h6>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="featured" name="featured">
+                                            <label class="form-check-label" for="featured">
+                                                <i class="bi bi-star"></i> Featured course
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="promoted" name="promoted">
+                                            <label class="form-check-label" for="promoted">
+                                                <i class="bi bi-megaphone"></i> Promoted course
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="allow_reviews" name="allow_reviews" checked>
+                                            <label class="form-check-label" for="allow_reviews">
+                                                <i class="bi bi-chat-square-text"></i> Allow student reviews
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="preview-card">
+                                        <h6>Course Preview</h6>
+                                        <div id="coursePreview">
+                                            <div class="bg-light rounded p-4 text-center mb-3">
+                                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                                                <p class="text-muted mb-0">Course thumbnail</p>
+                                            </div>
+                                            <h6 id="previewTitle">Course Title</h6>
+                                            <p id="previewDescription" class="text-muted small">Course description...</p>
+                                            <div class="d-flex justify-content-between">
+                                                <span id="previewCategory" class="badge bg-secondary">Category</span>
+                                                <span id="previewPrice" class="fw-bold text-primary">FREE</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="/admin/courses" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </a>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-primary" onclick="previewCourse()">
+                                        <i class="bi bi-eye"></i> Preview Course
+                                    </button>
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="bi bi-check-circle"></i> Create Course
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Character counter for description
+        document.getElementById('description').addEventListener('input', function() {
+            const count = this.value.length;
+            document.getElementById('descriptionCount').textContent = count;
+            
+            if (count > 1000) {
+                this.value = this.value.substring(0, 1000);
+                document.getElementById('descriptionCount').textContent = 1000;
+            }
+        });
+        
+        // Drag and drop functionality
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('thumbnail');
+        
+        dropArea.addEventListener('click', () => fileInput.click());
+        
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.background = '#fff5f5';
+        });
+        
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.style.background = '';
+        });
+        
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.background = '';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                previewImage(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files[0]) {
+                previewImage(this.files[0]);
+            }
+        });
+        
+        function previewImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+                updatePreview();
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Real-time preview update
+        function updatePreview() {
+            const title = document.getElementById('title').value || 'Course Title';
+            const description = document.getElementById('description').value || 'Course description...';
+            const categorySelect = document.getElementById('category_id');
+            const category = categorySelect.options[categorySelect.selectedIndex]?.text || 'Category';
+            const price = document.getElementById('price').value || '0';
+            
+            document.getElementById('previewTitle').textContent = title;
+            document.getElementById('previewDescription').textContent = description.substring(0, 100) + (description.length > 100 ? '...' : '');
+            document.getElementById('previewCategory').textContent = category;
+            document.getElementById('previewPrice').textContent = price == 0 ? 'FREE' : `$${price}`;
+            
+            // Update preview image
+            const previewImg = document.getElementById('previewImg');
+            if (previewImg.src && previewImg.src !== window.location.href) {
+                const coursePreview = document.querySelector('#coursePreview .bg-light');
+                if (coursePreview) {
+                    coursePreview.outerHTML = `<img src="${previewImg.src}" class="img-fluid rounded mb-3" style="max-height: 150px;">`;
+                }
+            }
+        }
+        
+        // Real-time preview updates
+        ['title', 'description', 'category_id', 'price'].forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.addEventListener('input', updatePreview);
+                element.addEventListener('change', updatePreview);
+            }
+        });
+        
+        // Form validation
+        document.getElementById('addCourseForm').addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const category = document.getElementById('category_id').value;
+            const instructor = document.getElementById('instructor_id').value;
+            const level = document.getElementById('level').value;
+            const price = document.getElementById('price').value;
+            const status = document.getElementById('status').value;
+            
+            if (!title || !description || !category || !instructor || !level || price === '' || !status) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+                return false;
+            }
+            
+            if (description.length < 50) {
+                e.preventDefault();
+                alert('Course description must be at least 50 characters long');
+                return false;
+            }
+        });
+        
+        // Instructor selection update
+        document.getElementById('instructor_id').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const instructorCard = document.querySelector('.card.bg-light .card-body');
+            
+            if (this.value) {
+                const name = selectedOption.text.split(' (@')[0];
+                const username = selectedOption.text.match(/@([^)]+)/)?.[1] || '';
+                
+                instructorCard.innerHTML = `
+                    <i class="bi bi-person-check-fill" style="font-size: 3rem; color: #28a745;"></i>
+                    <h6 class="mt-2">${name}</h6>
+                    <p class="text-muted small">@${username}</p>
+                `;
+            } else {
+                instructorCard.innerHTML = `
+                    <i class="bi bi-person-circle" style="font-size: 3rem; color: #dc3545;"></i>
+                    <h6 class="mt-2">Instructor Profile</h6>
+                    <p class="text-muted small">Selected instructor details will appear here</p>
+                `;
+            }
+        });
+        
+        function previewCourse() {
+            alert('Course preview will be available after creation');
+        }
+        
+        // Status change explanation
+        document.getElementById('status').addEventListener('change', function() {
+            const status = this.value;
+            const warningDiv = document.getElementById('statusWarning');
+            
+            if (warningDiv) warningDiv.remove();
+            
+            if (status === 'published') {
+                const warning = document.createElement('div');
+                warning.id = 'statusWarning';
+                warning.className = 'alert alert-warning mt-2';
+                warning.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Publishing immediately will make the course visible to students.';
+                this.parentNode.appendChild(warning);
+            }
+        });
+    </script>
+</body>
+</html>

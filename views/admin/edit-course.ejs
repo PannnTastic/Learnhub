@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Course - Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+        }
+        .form-card {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 15px;
+        }
+        .nav-pills .nav-link {
+            border-radius: 25px;
+            margin-right: 10px;
+        }
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+        }
+        .instructor-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+        }
+        .status-indicator {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .admin-badge {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+        }
+        .warning-alert {
+            border-left: 4px solid #ffc107;
+        }
+        .danger-alert {
+            border-left: 4px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    
+    <!-- Header -->
+    <div class="admin-header text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <nav aria-label="breadcrumb" class="mb-2">
+                        <ol class="breadcrumb text-white-50">
+                            <li class="breadcrumb-item"><a href="/admin/dashboard" class="text-white-50">Admin Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="/admin/courses" class="text-white-50">Courses</a></li>
+                            <li class="breadcrumb-item active text-white">Edit Course</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-pencil-square"></i> Edit Course (Admin)
+                    </h1>
+                    <p class="mb-0">Manage course settings and instructor assignment</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="admin-badge">
+                        <i class="bi bi-shield-check"></i> Admin Access
+                    </span>
+                    <a href="/admin/courses" class="btn btn-light ms-2">
+                        <i class="bi bi-arrow-left"></i> Back to Courses
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container mt-5">
+        <%- include('../partials/messages') %>
+        
+        <!-- Course & Instructor Overview -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-1"><%= course.title %></h5>
+                                <p class="text-muted mb-0">
+                                    Course ID: #<%= course.id %> | 
+                                    Created: <%= new Date(course.created_at).toLocaleDateString() %> |
+                                    Last updated: <%= new Date(course.updated_at).toLocaleDateString() %>
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <span class="status-indicator bg-<%= course.status === 'published' ? 'success' : course.status === 'draft' ? 'warning' : 'secondary' %> text-white">
+                                    <i class="bi bi-<%= course.status === 'published' ? 'check-circle' : course.status === 'draft' ? 'clock' : 'archive' %>"></i>
+                                    <%= course.status.charAt(0).toUpperCase() + course.status.slice(1) %>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="instructor-info">
+                    <h6 class="fw-bold mb-2">
+                        <i class="bi bi-person-badge"></i> Current Instructor
+                    </h6>
+                    <p class="mb-1">
+                        <strong><%= course.first_name %> <%= course.last_name %></strong>
+                    </p>
+                    <p class="text-muted small mb-0">
+                        @<%= course.username %>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Warnings -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-warning warning-alert">
+                    <h6><i class="bi bi-exclamation-triangle"></i> Admin Override Notice</h6>
+                    <p class="mb-0">
+                        You are editing this course with administrator privileges. Changes made here will override instructor settings. 
+                        Consider notifying the instructor of any significant changes.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-pills mb-4" id="adminEditTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="basic-tab" data-bs-toggle="pill" data-bs-target="#basic" type="button" role="tab">
+                    <i class="bi bi-info-circle"></i> Course Information
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="instructor-tab" data-bs-toggle="pill" data-bs-target="#instructor" type="button" role="tab">
+                    <i class="bi bi-person-gear"></i> Instructor Management
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="settings-tab" data-bs-toggle="pill" data-bs-target="#settings" type="button" role="tab">
+                    <i class="bi bi-sliders"></i> Advanced Settings
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="moderation-tab" data-bs-toggle="pill" data-bs-target="#moderation" type="button" role="tab">
+                    <i class="bi bi-shield-check"></i> Moderation
+                </button>
+            </li>
+        </ul>
+        
+        <!-- Form Container -->
+        <form action="/admin/courses/edit/<%= course.id %>" method="POST" id="adminEditCourseForm">
+            
+            <!-- Tab Content -->
+            <div class="tab-content" id="adminEditTabsContent">
+                
+                <!-- Course Information Tab -->
+                <div class="tab-pane fade show active" id="basic" role="tabpanel">
+                    <div class="card form-card">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">
+                                <i class="bi bi-info-circle"></i> Basic Course Information
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="title" class="form-label fw-bold">
+                                        Course Title <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control form-control-lg" id="title" name="title" 
+                                           value="<%= course.title %>" required>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="category_id" class="form-label fw-bold">
+                                        Category <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="category_id" name="category_id" required>
+                                        <option value="">Select a category</option>
+                                        <% categories.forEach(category => { %>
+                                            <option value="<%= category.id %>" <%= course.category_id == category.id ? 'selected' : '' %>>
+                                                <%= category.name %>
+                                            </option>
+                                        <% }) %>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="level" class="form-label fw-bold">
+                                        Difficulty Level <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="level" name="level" required>
+                                        <option value="beginner" <%= course.level === 'beginner' ? 'selected' : '' %>>Beginner</option>
+                                        <option value="intermediate" <%= course.level === 'intermediate' ? 'selected' : '' %>>Intermediate</option>
+                                        <option value="advanced" <%= course.level === 'advanced' ? 'selected' : '' %>>Advanced</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="price" class="form-label fw-bold">
+                                        Course Price <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="price" name="price" 
+                                               min="0" step="0.01" value="<%= course.price %>" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="status" class="form-label fw-bold">
+                                        Course Status <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="status" name="status" required>
+                                        <option value="draft" <%= course.status === 'draft' ? 'selected' : '' %>>Draft</option>
+                                        <option value="published" <%= course.status === 'published' ? 'selected' : '' %>>Published</option>
+                                        <option value="archived" <%= course.status === 'archived' ? 'selected' : '' %>>Archived</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="description" class="form-label fw-bold">
+                                        Course Description <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea class="form-control" id="description" name="description" rows="6" required><%= course.description %></textarea>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="requirements" class="form-label fw-bold">
+                                        Prerequisites
+                                    </label>
+                                    <textarea class="form-control" id="requirements" name="requirements" rows="3"><%= course.requirements || '' %></textarea>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="objectives" class="form-label fw-bold">
+                                        Learning Objectives
+                                    </label>
+                                    <textarea class="form-control" id="objectives" name="objectives" rows="4"><%= course.objectives || '' %></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Instructor Management Tab -->
+                <div class="tab-pane fade" id="instructor" role="tabpanel">
+                    <div class="card form-card">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">
+                                <i class="bi bi-person-gear"></i> Instructor Assignment
+                            </h5>
+                            
+                            <div class="alert alert-warning">
+                                <h6><i class="bi bi-exclamation-triangle"></i> Important Notice</h6>
+                                <p class="mb-0">
+                                    Changing the instructor will transfer ownership of this course. The new instructor will gain full access to manage the course content.
+                                </p>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label for="instructor_id" class="form-label fw-bold">
+                                        Assign Instructor <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="instructor_id" name="instructor_id" required>
+                                        <% instructors.forEach(instructor => { %>
+                                            <option value="<%= instructor.id %>" <%= course.instructor_id == instructor.id ? 'selected' : '' %>>
+                                                <%= instructor.first_name %> <%= instructor.last_name %> (@<%= instructor.username %>)
+                                            </option>
+                                        <% }) %>
+                                    </select>
+                                    <div class="form-text">
+                                        Select the instructor who will manage this course
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">Current Instructor</label>
+                                    <div class="instructor-info">
+                                        <strong><%= course.first_name %> <%= course.last_name %></strong><br>
+                                        <small class="text-muted">@<%= course.username %></small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="notify_instructor" name="notify_instructor" checked>
+                                        <label class="form-check-label" for="notify_instructor">
+                                            <i class="bi bi-envelope"></i> Notify instructor of changes via email
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Advanced Settings Tab -->
+                <div class="tab-pane fade" id="settings" role="tabpanel">
+                    <div class="card form-card">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">
+                                <i class="bi bi-sliders"></i> Advanced Course Settings
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold">Visibility Settings</h6>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="featured" name="featured">
+                                        <label class="form-check-label" for="featured">
+                                            <i class="bi bi-star"></i> Featured Course
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="promoted" name="promoted">
+                                        <label class="form-check-label" for="promoted">
+                                            <i class="bi bi-megaphone"></i> Promoted Course
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="searchable" name="searchable" checked>
+                                        <label class="form-check-label" for="searchable">
+                                            <i class="bi bi-search"></i> Searchable in catalog
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold">Student Interaction</h6>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="allow_reviews" name="allow_reviews" checked>
+                                        <label class="form-check-label" for="allow_reviews">
+                                            <i class="bi bi-chat-square-text"></i> Allow student reviews
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="allow_discussions" name="allow_discussions" checked>
+                                        <label class="form-check-label" for="allow_discussions">
+                                            <i class="bi bi-chat"></i> Enable course discussions
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="allow_certificates" name="allow_certificates" checked>
+                                        <label class="form-check-label" for="allow_certificates">
+                                            <i class="bi bi-award"></i> Issue completion certificates
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <hr>
+                                    <h6 class="fw-bold">Administrative Notes</h6>
+                                    <textarea class="form-control" id="admin_notes" name="admin_notes" rows="3" 
+                                              placeholder="Internal notes about this course (visible only to administrators)"><%= course.admin_notes || '' %></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Moderation Tab -->
+                <div class="tab-pane fade" id="moderation" role="tabpanel">
+                    <div class="card form-card">
+                        <div class="card-body p-4">
+                            <h5 class="mb-4">
+                                <i class="bi bi-shield-check"></i> Content Moderation
+                            </h5>
+                            
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="alert alert-danger danger-alert">
+                                        <h6><i class="bi bi-exclamation-octagon"></i> Moderation Actions</h6>
+                                        <p class="mb-0">
+                                            These actions are irreversible and will affect course visibility and accessibility.
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-danger">Content Flags</h6>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="flagged_content" name="flagged_content">
+                                        <label class="form-check-label" for="flagged_content">
+                                            <i class="bi bi-flag"></i> Contains flagged content
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="under_review" name="under_review">
+                                        <label class="form-check-label" for="under_review">
+                                            <i class="bi bi-eye"></i> Under content review
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="quality_issues" name="quality_issues">
+                                        <label class="form-check-label" for="quality_issues">
+                                            <i class="bi bi-exclamation-triangle"></i> Quality issues reported
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-warning">Restrictions</h6>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enrollment_restricted" name="enrollment_restricted">
+                                        <label class="form-check-label" for="enrollment_restricted">
+                                            <i class="bi bi-lock"></i> Restrict new enrollments
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="comments_disabled" name="comments_disabled">
+                                        <label class="form-check-label" for="comments_disabled">
+                                            <i class="bi bi-chat-slash"></i> Disable comments/discussions
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rating_disabled" name="rating_disabled">
+                                        <label class="form-check-label" for="rating_disabled">
+                                            <i class="bi bi-star-slash"></i> Disable ratings/reviews
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="moderation_reason" class="form-label fw-bold">
+                                        Moderation Reason
+                                    </label>
+                                    <textarea class="form-control" id="moderation_reason" name="moderation_reason" rows="3" 
+                                              placeholder="Explain the reason for moderation actions (will be logged)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="/admin/courses" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancel
+                                    </a>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-outline-info" onclick="viewCourse()">
+                                        <i class="bi bi-eye"></i> View Course
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning" onclick="viewInstructorDashboard()">
+                                        <i class="bi bi-person-gear"></i> Instructor View
+                                    </button>
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="bi bi-check-circle"></i> Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validation
+        document.getElementById('adminEditCourseForm').addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const category = document.getElementById('category_id').value;
+            const instructor = document.getElementById('instructor_id').value;
+            const level = document.getElementById('level').value;
+            const price = document.getElementById('price').value;
+            const status = document.getElementById('status').value;
+            
+            if (!title || !description || !category || !instructor || !level || price === '' || !status) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+                return false;
+            }
+            
+            // Confirm instructor change
+            const currentInstructor = '<%= course.instructor_id %>';
+            if (instructor !== currentInstructor) {
+                if (!confirm('You are changing the instructor for this course. This will transfer ownership. Continue?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            
+            // Confirm status changes that affect visibility
+            const currentStatus = '<%= course.status %>';
+            if (currentStatus === 'published' && status !== 'published') {
+                if (!confirm('Changing from published status will make the course unavailable to students. Continue?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+        
+        // Status change warnings
+        document.getElementById('status').addEventListener('change', function() {
+            const status = this.value;
+            const warningDiv = document.getElementById('statusWarning');
+            
+            if (warningDiv) warningDiv.remove();
+            
+            if (status === 'archived') {
+                const warning = document.createElement('div');
+                warning.id = 'statusWarning';
+                warning.className = 'alert alert-warning mt-2';
+                warning.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Archiving will hide this course from students and prevent new enrollments.';
+                this.parentNode.appendChild(warning);
+            }
+        });
+        
+        // Instructor change warning
+        document.getElementById('instructor_id').addEventListener('change', function() {
+            const currentInstructor = '<%= course.instructor_id %>';
+            const warningDiv = document.getElementById('instructorWarning');
+            
+            if (warningDiv) warningDiv.remove();
+            
+            if (this.value !== currentInstructor) {
+                const warning = document.createElement('div');
+                warning.id = 'instructorWarning';
+                warning.className = 'alert alert-warning mt-2';
+                warning.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Changing the instructor will transfer course ownership and management rights.';
+                this.parentNode.appendChild(warning);
+            }
+        });
+        
+        function viewCourse() {
+            window.open('/courses/<%= course.id %>', '_blank');
+        }
+        
+        function viewInstructorDashboard() {
+            window.open('/instructor/courses/<%= course.id %>/content', '_blank');
+        }
+        
+        // Auto-save draft functionality (optional)
+        let autoSaveTimeout;
+        document.querySelectorAll('input, textarea, select').forEach(element => {
+            element.addEventListener('input', function() {
+                clearTimeout(autoSaveTimeout);
+                autoSaveTimeout = setTimeout(() => {
+                    // Auto-save logic could be implemented here
+                    console.log('Auto-saving changes...');
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>
